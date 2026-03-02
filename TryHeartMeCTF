@@ -1,0 +1,53 @@
+Here is my walkthrough the completion of the TryHeartMe CTF, categorized as an easy challenge:
+
+  1. Firstly, we open burp suite and go to the "proxy" section.
+
+  2. We open a browser thanks to burp suite and set "intercept" to "on".
+
+  3. When inside the chromium browser, we simply connect to the webapp with the given IP of our target.
+
+  4. We create an account (by clicking on the "Sign Up" button) with any email and any password (I chose to go with "test@test.com" and "abcdefg")
+
+  5. We hop back into burp and click on "forward" until the main page is visible again to actually create the account.
+
+  6. Afterwards, we go to the "HTTP history" section in the burp proxy and inspect the request when our connection got validated, we should see that the cookie of our session start with "eyJ", which indicate there is potentially a threat with JWT (JSON Web Token).
+
+  7. We copy the cookie and paste it to the jwt.io website in the decode section. We should get a result like this: 
+
+Header:
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+
+Payload:
+{
+
+  "email": "test@test.com",
+
+  "role": "user",
+
+  "credits": 0,
+
+  "iat": 1772468184,
+
+  "theme": "valentine"
+
+}
+
+And a signature but it's not relevant since we are going to erase it.
+  
+  8. Then, we go in the encode section and replace the "user" role by "admin" (which can gives us access to the admin version of the webapp) and we also replace "HS256" with "none" in the header (which is misconfiguration in the JWT library of the webapp and 
+    allow us, if it is accepted, to make the server don't check the signature after the payload in the JWT, and thus give us the admin role without verificating who are we)
+
+  9. We copy the new JWT and go back to our webapp on chromium and we click on the "Shop" button
+
+  10. We alt+tab to burp and before we send the request, we change the cookie session to our new JWT with the modification we made.
+
+  11. Until we are getting the flag, we are going to change carefully the cookie everytime in the request before we accept it (click on "Forward") on burp (if we forget to do it we get an error because our cookie is reset when the page is refreshed)
+
+  12. Now, we can pursue and click on "Forward" in the burp proxy to access to the shop, but with admin permissions.
+
+  13. We should be able to see a new item in the shop, we just have to click on it and make sure we change the JWT before we send the request to the webapp to avoid errors as previously said.
+
+  14. When we access the item, we get access to the Flag and GG!
