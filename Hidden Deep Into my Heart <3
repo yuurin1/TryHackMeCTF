@@ -1,0 +1,37 @@
+💘 Write-up: Hidden Deep Into my Heart 💘
+Difficulty: Easy | Target IP: 10.129.179.158 
+
+🔍 1. Enumeration
+We started with a classic nmap scan to see what's under the hood:
+
+Bash
+nmap -sV -sC 10.129.179.158
+Port 22: SSH
+Port 5000: HTTP
+
+🤖 2. robots.txt
+Nothing obvious on the homepage, so we check the robots.txt file:
+
+"http://10.129.179.158:5000/robots.txt"
+
+Findings:
+
+Disallow: /cupids_secret_vault/* 🚪
+
+A comment: # cupid_arrow_2026!!! 🔑 (Likely a password)
+
+📂 3. Fuzzing
+Navigating to /cupids_secret_vault/ didn't give much, so we launch Gobuster to find hidden paths on the main site:
+
+Bash
+gobuster dir -u http://10.129.179.158:5000/ -w /usr/share/wordlists/dirb/common.txt
+Discovery: /administrator found! ⚡
+
+🎯 4. Exploitation
+Thus, we visit the /administrator page. It asked for a username and password.
+
+Username: admin (Logical guess for an admin panel).
+
+Password: cupid_arrow_2026!!! (From the robots.txt comment).
+
+Result: the flag is displayed yipee !
