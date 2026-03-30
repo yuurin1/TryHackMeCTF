@@ -1,0 +1,54 @@
+🚩 Write-up: TryHackMe - Simple CTF
+Date: March 30, 2026
+Difficulty: Easy 🟢
+Category: Web / Privilege Escalation
+Target IP: 10.128.154.113
+
+🎯 1. Enumeration & Reconnaissance
+The first step was to identify the services running on the target machine.
+
+Nmap Scan: * Port 80: Apache Debian Default Page (HTTP).
+
+Port 2222: SSH running on a non-standard port.
+
+Directory Fuzzing: Using gobuster revealed a hidden directory: /simple.
+
+Technology Identified: The site is running CMS Made Simple v2.2.8.
+
+🕸️ 2. Web Exploitation (CVE-2019-9053)
+Researching the CMS version led to CVE-2019-9053, a Time-based Blind SQL Injection.
+
+The Challenge: The original exploit script (Python 2) required debugging to run on modern Python 3 environments.
+
+The Fix: I modified the script to handle latin-1 encoding for the rockyou.txt wordlist and ensured the MD5 hashing used properly encoded byte strings.
+
+Extraction: The script successfully extracted the database credentials.
+
+Username: mitch
+
+Password: secret     (🤣)
+
+🔑 3. Initial Access (Foothold)
+Using the discovered credentials, I established a secure connection via SSH on the custom port:
+ssh mitch@10.128.154.113 -p 2222
+
+📖 User Flag Found: /home/mitch/user.txt 🚩
+G00d j0b, keep up!
+
+👑 4. Privilege Escalation (The GTFOBins Path)
+I checked for misconfigured sudo permissions using sudo -l. I discovered that Mitch could execute /usr/bin/vim as root without a password.
+
+Vulnerability: This is a well-known GTFOBin. Many binaries, if allowed to run as sudo, can be "escaped" to spawn a shell.
+
+Exploitation: By launching Vim with a specific flag, I forced it to execute a system shell before opening:
+
+Bash
+sudo vim -c ':!/bin/sh'
+Result: Instant access to the root account. ⚡
+
+🏁 5. Conclusion & Lessons Learned
+Root Flag: /root/root.txt Found! 🏁
+W3ll d0n3. You made it!
+
+Takeaways:  1.  Software Patching: Always keep CMS software updated to avoid known CVEs.
+            2.  Least Privilege: Never allow users to run powerful binaries like vim, find, or nano via sudo without strict limitations.
